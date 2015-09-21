@@ -1,3 +1,0 @@
-#!/bin/bash
-
-php "$(dirname "${BASH_SOURCE}")"/imos-lambda.php "$@"

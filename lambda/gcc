@@ -1,0 +1,10 @@
+#!/bin/bash
+
+if [ ! -d /tmp/gcc ]; then
+  pushd / >/dev/null
+  tar Jxf /var/task/gcc-min.tar.xz
+  popd >/dev/null
+fi
+
+cp $HOME/input $HOME/input.cc
+/tmp/gcc/bin/g++ -std=c++0x --static -o $HOME/output $HOME/input.cc

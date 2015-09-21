@@ -1,0 +1,9 @@
+#!/bin/bash
+
+if [ -f "${HOME}/input" ]; then
+  chmod +x "${HOME}/input"
+  "${HOME}/input"
+elif [ -f "${HOME}/object" ]; then
+  chmod +x "${HOME}/object"
+  "${HOME}/object"
+fi

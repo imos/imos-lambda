@@ -1,0 +1,25 @@
+#!/bin/bash
+# imos-lambda
+#
+# Usage:
+#     imos-lambda
+
+source "$(dirname "${BASH_SOURCE}")"/imosh || exit 1
+DEFINE_string input '' 'Input.'
+DEFINE_string object '' 'Object.'
+DEFINE_string function 'exec' 'Function name.'
+DEFINE_string bucket 'lambda.imoz.jp' 'Bucket name to read from/write to.'
+IMOSH_PREDICATE=1 eval "${IMOSH_INIT}"
+
+IMOS_BIN="$(cd "$(dirname "${BASH_SOURCE}")"; pwd)"
+
+if [ "${FLAGS_input}" != '' ]; then
+  export IMOS_LAMBDA_INPUT="${FLAGS_input}"
+fi
+if [ "${FLAGS_object}" != '' ]; then
+  export IMOS_LAMBDA_OBJECT="${FLAGS_object}"
+fi
+
+IMOS_LAMBDA_FUNCTION="${FLAGS_function}" \
+IMOS_LAMBDA_BUCKET='lambda.imoz.jp' \
+    php "${IMOS_BIN}/library/imos-lambda.php" "$@"
