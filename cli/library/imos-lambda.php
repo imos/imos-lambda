@@ -66,8 +66,5 @@ if (isset($data['elapsed_time'])) {
   $price =
       ($info['MemorySize'] / 1024 * $base_price / 10 *
        ceil($data['elapsed_time'] / 100) + $request_price) * $usdjpy;
-  fprintf(
-      STDERR,
-      "Price: %.4f JPY\n",
-      ceil($data['elapsed_time'] / 100) * $price);
+  fprintf(STDERR, "Price: %.4f JPY\n", $price);
 }
