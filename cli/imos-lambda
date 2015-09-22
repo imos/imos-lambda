@@ -9,10 +9,17 @@ DEFINE_string input '' 'Input.'
 DEFINE_string object '' 'Object.'
 DEFINE_string function 'exec' 'Function name.'
 DEFINE_string bucket 'lambda.imoz.jp' 'Bucket name to read from/write to.'
+DEFINE_string compiler '' 'Compiler.'
+DEFINE_int replicas 0 'The number of replicas.'
 IMOSH_PREDICATE=1 eval "${IMOSH_INIT}"
 
 IMOS_BIN="$(cd "$(dirname "${BASH_SOURCE}")"; pwd)"
 
+lambda-invoke() {
+  php "${IMOS_BIN}/library/imos-lambda.php" "$@"
+}
+
+export IMOS_LAMBDA_BUCKET="${FLAGS_bucket}"
 if [ "${FLAGS_input}" != '' ]; then
   export IMOS_LAMBDA_INPUT="${FLAGS_input}"
 fi
@@ -20,6 +27,41 @@ if [ "${FLAGS_object}" != '' ]; then
   export IMOS_LAMBDA_OBJECT="${FLAGS_object}"
 fi
 
-IMOS_LAMBDA_FUNCTION="${FLAGS_function}" \
-IMOS_LAMBDA_BUCKET='lambda.imoz.jp' \
-    php "${IMOS_BIN}/library/imos-lambda.php" "$@"
+if [ "${FLAGS_compiler}" != '' ]; then
+  if [ "${IMOS_LAMBDA_INPUT}" == '' ]; then
+    LOG FATAL '--input must be specified to compile.'
+  fi
+  LOG INFO 'Compiling...'
+  if ! IMOS_LAMBDA_FUNCTION="${FLAGS_compiler}" \
+       IMOS_LAMBDA_PRINT='output' \
+          lambda-invoke >"${TMPDIR}/output"; then
+    LOG FATAL 'Failed to compile.'
+  fi
+  export IMOS_LAMBDA_OBJECT="$(cat "${TMPDIR}/output")"
+  LOG INFO "Successfully compiled: ${IMOS_LAMBDA_OBJECT}"
+  unset IMOS_LAMBDA_INPUT
+fi
+
+if (( FLAGS_replicas == 0 )); then
+  LOG INFO 'Invoking function.'
+  lambda-invoke "$@"
+else
+  export IMOS_LAMBDA_REPLICAS="${FLAGS_replicas}"
+  export IMOS_LAMBDA_REPLICA_INDEX=0
+  while (( IMOS_LAMBDA_REPLICA_INDEX < FLAGS_replicas )); do
+    LOG INFO "Invoking function: No. ${IMOS_LAMBDA_REPLICA_INDEX}"
+    lambda-invoke "$@" \
+        > "${TMPDIR}/${IMOS_LAMBDA_REPLICA_INDEX}.stdout" \
+        2> "${TMPDIR}/${IMOS_LAMBDA_REPLICA_INDEX}.stderr" &
+    export IMOS_LAMBDA_REPLICA_INDEX="$(( IMOS_LAMBDA_REPLICA_INDEX + 1 ))"
+  done
+  wait
+  export IMOS_LAMBDA_REPLICA_INDEX=0
+  while (( IMOS_LAMBDA_REPLICA_INDEX < FLAGS_replicas )); do
+    cat "${TMPDIR}/${IMOS_LAMBDA_REPLICA_INDEX}.stdout"
+    cat "${TMPDIR}/${IMOS_LAMBDA_REPLICA_INDEX}.stderr" >&2
+    export IMOS_LAMBDA_REPLICA_INDEX="$(( IMOS_LAMBDA_REPLICA_INDEX + 1 ))"
+  done
+fi
+LOG INFO 'Completed.'
+
