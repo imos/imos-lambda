@@ -29,6 +29,12 @@ function GetRequest($argv) {
   if (isset($_ENV['IMOS_LAMBDA_OBJECT'])) {
     $request['object'] = $_ENV['IMOS_LAMBDA_OBJECT'];
   }
+  if (isset($_ENV['IMOS_LAMBDA_REPLICAS'])) {
+    $request['replicas'] = intval($_ENV['IMOS_LAMBDA_REPLICAS']);
+  }
+  if (isset($_ENV['IMOS_LAMBDA_REPLICA_INDEX'])) {
+    $request['replica_index'] = intval($_ENV['IMOS_LAMBDA_REPLICA_INDEX']);
+  }
 
   $arg0 = array_shift($argv);
   $command = implode(' ', $argv);

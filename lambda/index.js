@@ -98,7 +98,17 @@ function runCommand(event, context, callback) {
     }
     command = './' + context.functionName;
   }
+  var exports = '';
+  if ("replicas" in event && event.replicas != null && event.replicas !== '') {
+    exports += "export IMOS_LAMBDA_REPLICAS=" + parseInt(event.replicas) + "; ";
+  }
+  if ("replica_index" in event && event.replica_index != null &&
+      event.replica_index !== '') {
+    exports += "export IMOS_LAMBDA_REPLICA_INDEX=" +
+               parseInt(event.replica_index) + "; ";
+  }
   var command =
+      exports +
       "export TMPDIR='" + context.root + "/tmp'; " +
       "export HOME='" + context.root + "/home'; " +
       "export REQUEST_ID='" + context.awsRequestId + "'; " +
