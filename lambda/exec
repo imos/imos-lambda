@@ -2,8 +2,8 @@
 
 if [ -f "${HOME}/object" ]; then
   chmod +x "${HOME}/object"
-  "${HOME}/object"
+  "${HOME}/object" "$@"
 elif [ -f "${HOME}/input" ]; then
   chmod +x "${HOME}/input"
-  "${HOME}/input"
+  "${HOME}/input" "$@"
 fi

@@ -7,4 +7,4 @@ if [ ! -d /tmp/gcc ]; then
 fi
 
 cp $HOME/input $HOME/input.cc
-/tmp/gcc/bin/g++ -std=c++0x --static -o $HOME/output $HOME/input.cc
+/tmp/gcc/bin/g++ -std=c++0x --static -o $HOME/output $HOME/input.cc "$@"

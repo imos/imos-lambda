@@ -1,3 +1,5 @@
+REGION?=ap-northeast-1
+
 usage:
 	@echo 'Usage: make package' >&2
 .PHONY: usage
@@ -13,5 +15,5 @@ package-%: lambda/% lambda/index.js
 	cd lambda; zip ../output/$*.zip $* index.js
 
 install-%: package-%
-	aws lambda update-function-code --region=ap-northeast-1 --function-name=$* --zip-file=fileb://output/$*.zip
+	aws lambda update-function-code --region=$(REGION) --function-name=$* --zip-file=fileb://output/$*.zip
 .PHONY: install-%

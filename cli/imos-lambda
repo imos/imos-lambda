@@ -7,9 +7,12 @@
 source "$(dirname "${BASH_SOURCE}")"/imosh || exit 1
 DEFINE_string input '' 'Input.'
 DEFINE_string object '' 'Object.'
+DEFINE_string region 'ap-northeast-1' 'Region.'
 DEFINE_string function 'exec' 'Function name.'
-DEFINE_string bucket 'lambda.imoz.jp' 'Bucket name to read from/write to.'
+DEFINE_string bucket '' 'Bucket name to read from/write to.'
 DEFINE_string compiler '' 'Compiler.'
+DEFINE_string compiler_flags '' 'Compiler flags.'
+DEFINE_string arguments '' 'Extra arguments.'
 DEFINE_int replicas 0 'The number of replicas.'
 IMOSH_PREDICATE=1 eval "${IMOSH_INIT}"
 
@@ -19,7 +22,12 @@ lambda-invoke() {
   php "${IMOS_BIN}/library/imos-lambda.php" "$@"
 }
 
-export IMOS_LAMBDA_BUCKET="${FLAGS_bucket}"
+if [ "${FLAGS_region}" != '' ]; then
+  export IMOS_LAMBDA_REGION="${FLAGS_region}"
+fi
+if [ "${FLAGS_bucket}" != '' ]; then
+  export IMOS_LAMBDA_BUCKET="${FLAGS_bucket}"
+fi
 if [ "${FLAGS_input}" != '' ]; then
   export IMOS_LAMBDA_INPUT="${FLAGS_input}"
 fi
@@ -33,6 +41,7 @@ if [ "${FLAGS_compiler}" != '' ]; then
   fi
   LOG INFO 'Compiling...'
   if ! IMOS_LAMBDA_FUNCTION="${FLAGS_compiler}" \
+       IMOS_LAMBDA_ARGUMENTS="${FLAGS_compiler_flags}" \
        IMOS_LAMBDA_PRINT='output' \
           lambda-invoke >"${TMPDIR}/output"; then
     LOG FATAL 'Failed to compile.'
@@ -42,6 +51,10 @@ if [ "${FLAGS_compiler}" != '' ]; then
   unset IMOS_LAMBDA_INPUT
 fi
 
+export IMOS_LAMBDA_FUNCTION="${FLAGS_function}"
+if [ "${FLAGS_arguments}" != '' ]; then
+  export IMOS_LAMBDA_ARGUMENTS="${FLAGS_arguments}"
+fi
 if (( FLAGS_replicas == 0 )); then
   LOG INFO 'Invoking function.'
   lambda-invoke "$@"

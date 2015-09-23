@@ -107,12 +107,17 @@ function runCommand(event, context, callback) {
     exports += "export IMOS_LAMBDA_REPLICA_INDEX=" +
                parseInt(event.replica_index) + "; ";
   }
+  if ("arguments" in event && event.arguments != null &&
+      event.arguments !== '') {
+    command += " " + event.arguments;
+  }
   var command =
       exports +
       "export TMPDIR='" + context.root + "/tmp'; " +
       "export HOME='" + context.root + "/home'; " +
       "export REQUEST_ID='" + context.awsRequestId + "'; " +
       command;
+  console.log("Executing: " + command);
   exec(command, function(error, stdout, stderr) {
     if (error) {
       context.response.code = error.code;

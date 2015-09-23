@@ -26,6 +26,9 @@ function GetRequest($argv) {
     }
     $request['input'] = file_get_contents($_ENV['IMOS_LAMBDA_INPUT']);
   }
+  if (isset($_ENV['IMOS_LAMBDA_ARGUMENTS'])) {
+    $request['arguments'] = $_ENV['IMOS_LAMBDA_ARGUMENTS'];
+  }
   if (isset($_ENV['IMOS_LAMBDA_OBJECT'])) {
     $request['object'] = $_ENV['IMOS_LAMBDA_OBJECT'];
   }
@@ -65,13 +68,15 @@ function InvokeLambda($function, $request) {
       $map[$pair[0]] = $pair[1];
     }
     $data['stats'] = $map;
-    if ($result['FunctionError'] != '') {
+    if ($result['FunctionError'] != '' ||
+        (isset($data['code']) && $data['code'] != 0) ||
+        (isset($data['signal']) && $data['signal'] != 0)) {
       foreach (explode("\n", trim($log)) as $line) {
         fwrite(STDERR, "LOG: $line\n");
       }
     }
   }
-  
+
   return $data;
 }
 
