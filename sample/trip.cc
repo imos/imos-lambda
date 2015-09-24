@@ -15,6 +15,7 @@ int main(int argc, char** argv) {
   char password[9] = {0};
   char salt[3] = {0};
   int start_time = time(nullptr);
+  int count = 0;
   while (time(nullptr) < start_time + 30) {
     for (int loop = 0; loop < 1000; loop++) {
       for (int i = 0; i < 8; i++) {
@@ -33,8 +34,10 @@ int main(int argc, char** argv) {
       if (!mismatch) {
         printf("%s %s\n", password, trip);
       }
+      count++;
     }
   }
+  fprintf(stderr, "Total: %d\n", count);
 
   return 0;
 }
