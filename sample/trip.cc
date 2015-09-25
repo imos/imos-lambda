@@ -16,7 +16,7 @@ int main(int argc, char** argv) {
   char salt[3] = {0};
   int start_time = time(nullptr);
   int count = 0;
-  while (time(nullptr) < start_time + 30) {
+  while (time(nullptr) < start_time + 10) {
     for (int loop = 0; loop < 1000; loop++) {
       for (int i = 0; i < 8; i++) {
         password[i] = 'a' + (mt() % 26);

@@ -13,7 +13,7 @@ DEFINE_string bucket '' 'Bucket name to read from/write to.'
 DEFINE_string compiler '' 'Compiler.'
 DEFINE_string compiler_flags '' 'Compiler flags.'
 DEFINE_string arguments '' 'Extra arguments.'
-DEFINE_int replicas 0 'The number of replicas.'
+DEFINE_int replicas 1 'The number of replicas.'
 IMOSH_PREDICATE=1 eval "${IMOSH_INIT}"
 
 IMOS_BIN="$(cd "$(dirname "${BASH_SOURCE}")"; pwd)"
@@ -55,26 +55,7 @@ export IMOS_LAMBDA_FUNCTION="${FLAGS_function}"
 if [ "${FLAGS_arguments}" != '' ]; then
   export IMOS_LAMBDA_ARGUMENTS="${FLAGS_arguments}"
 fi
-if (( FLAGS_replicas == 0 )); then
-  LOG INFO 'Invoking function.'
-  lambda-invoke "$@"
-else
-  export IMOS_LAMBDA_REPLICAS="${FLAGS_replicas}"
-  export IMOS_LAMBDA_REPLICA_INDEX=0
-  while (( IMOS_LAMBDA_REPLICA_INDEX < FLAGS_replicas )); do
-    LOG INFO "Invoking function: No. ${IMOS_LAMBDA_REPLICA_INDEX}"
-    lambda-invoke "$@" \
-        > "${TMPDIR}/${IMOS_LAMBDA_REPLICA_INDEX}.stdout" \
-        2> "${TMPDIR}/${IMOS_LAMBDA_REPLICA_INDEX}.stderr" &
-    export IMOS_LAMBDA_REPLICA_INDEX="$(( IMOS_LAMBDA_REPLICA_INDEX + 1 ))"
-  done
-  wait
-  export IMOS_LAMBDA_REPLICA_INDEX=0
-  while (( IMOS_LAMBDA_REPLICA_INDEX < FLAGS_replicas )); do
-    cat "${TMPDIR}/${IMOS_LAMBDA_REPLICA_INDEX}.stdout"
-    cat "${TMPDIR}/${IMOS_LAMBDA_REPLICA_INDEX}.stderr" >&2
-    export IMOS_LAMBDA_REPLICA_INDEX="$(( IMOS_LAMBDA_REPLICA_INDEX + 1 ))"
-  done
-fi
+export IMOS_LAMBDA_REPLICAS="${FLAGS_replicas}"
+LOG INFO 'Invoking function.'
+lambda-invoke "$@"
 LOG INFO 'Completed.'
-
